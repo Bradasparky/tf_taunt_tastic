@@ -1,7 +1,7 @@
 # [TF2] Taunt-tastic
 Inspired by FlaminSarge's [[TF2] Taunt 'em](https://github.com/FlaminSarge/tf_tauntem) plugin.
 
-Allows for players to use in-game commands to use a taunt through either a menu or by specifying an index.
+Allows for players to use an in-game command to taunt via menu or by specifying an index or name of a taunt.
 
 This plugin calls VScript from Sourcepawn in order to force players to taunt to avoid requiring memory hacks.
 
