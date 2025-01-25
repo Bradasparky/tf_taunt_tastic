@@ -406,7 +406,7 @@ void MenuHandler_OnTauntSelected(Menu hMenu, MenuAction eAction, int iClient, in
 void ForceTaunt(int iClient, int iTauntTauntIndex)
 {
     int iActiveWeapon = GetEntPropEnt(iClient, Prop_Send, "m_hActiveWeapon");
-    char szClassname[32];
+    char szClassname[40];
     GetEdictClassname(iActiveWeapon, szClassname, sizeof(szClassname));
     
     // Thermal Thruster is the only weapon which needs a different classname to work
