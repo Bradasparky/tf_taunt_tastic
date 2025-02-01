@@ -364,13 +364,37 @@ void CreateTauntMenu()
     }
 }
 
+void NextFrame_DrawTauntMenu(int iClient)
+{
+    if (iClassMenu[iClient])
+        hTauntMenu[iClassMenu[iClient]].Display(iClient, MENU_TIME_FOREVER);
+}
+
 void MenuHandler_OnTauntSelected(Menu hMenu, MenuAction eAction, int iClient, int iParam2)
 {
     switch (eAction)
     {
-        case MenuAction_Display: iClassMenu[iClient] = ConvertClassID(TF2_GetPlayerClass(iClient));
+        case MenuAction_Display: 
+        {
+            int iClass = ConvertClassID(TF2_GetPlayerClass(iClient));
+            if (!iClassMenu[iClient])
+            {
+                iClassMenu[iClient] = iClass;
+                return;
+            }
+            
+            if (iClassMenu[iClient] != iClass)
+            {
+                iClassMenu[iClient] = iClass;
+                RequestFrame(NextFrame_DrawTauntMenu, iClient);
+                PrintToChat(iClient, "%s Tried to view taunts for the wrong class. Opening the menu for %s.", PLUGIN_TAG, szTFClassNameProper[iClass]);
+            }
+        }
         case MenuAction_Select:
         {
+            if (!iClassMenu[iClient])
+                return;
+            
             if (!IsPlayerAlive(iClient))
             {
                 PrintToChat(iClient, "%s You must be alive to taunt.", PLUGIN_TAG);
@@ -379,23 +403,23 @@ void MenuHandler_OnTauntSelected(Menu hMenu, MenuAction eAction, int iClient, in
             
             char szTauntIndex[16];
             hMenu.GetItem(iParam2, szTauntIndex, sizeof(szTauntIndex)); 
-            
             int iClass = ConvertClassID(TF2_GetPlayerClass(iClient));
             if (iClassMenu[iClient] != iClass)
             {
+                iClassMenu[iClient] = iClass;
                 hTauntMenu[iClass].Display(iClient, MENU_TIME_FOREVER);
-                ReplyToCommand(iClient, "%s You selected an option on the wrong class's menu. Opening the menu for %s", PLUGIN_TAG, szTFClassNameProper[iClass]);
+                PrintToChat(iClient, "%s You selected an option on the wrong class's menu. Opening the menu for %s.", PLUGIN_TAG, szTFClassNameProper[iClass]);
                 return;
             }
 
             if (!cvAllowTauntWhileTaunting.BoolValue && TF2_IsPlayerInCondition(iClient, TFCond_Taunting))
-                ReplyToCommand(iClient, "%s You cannot taunt while already taunting.", PLUGIN_TAG);
+                PrintToChat(iClient, "%s You cannot taunt while already taunting.", PLUGIN_TAG);
             else
                 ForceTaunt(iClient, StringToInt(szTauntIndex));
 
             hMenu.DisplayAt(iClient, iParam2 / 7 * 7, MENU_TIME_FOREVER);
         }
-        case MenuAction_Cancel: iClassMenu[iClient] = -1;
+        case MenuAction_Cancel: iClassMenu[iClient] = 0;
     }
 }
 
