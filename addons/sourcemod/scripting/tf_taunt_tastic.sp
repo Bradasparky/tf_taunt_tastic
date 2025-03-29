@@ -91,7 +91,7 @@ Action Command_TauntList(int iClient, int iArgs)
     }
     
     if(GetCmdReplySource() == SM_REPLY_TO_CHAT)
-		ReplyToCommand(iClient, "%s %t", "See console for output");
+		ReplyToCommand(iClient, "%s See console for output", PLUGIN_TAG);
         
     PrintToConsole(iClient, "\nTaunt list for %s:", szTFClassNameProper[iClass]);
 
