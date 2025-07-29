@@ -6,9 +6,10 @@
 #define TF_CLASS_ANY -1
 #define TF_MAX_CLASS_COUNT 10
 #define THERMAL_THRUSTER 1179
+#define DUMMY_TARGETNAME "tf_taunt_tastic_dummy"
 #define CONFIG "configs/tf_taunt_tastic.cfg"
 #define PLUGIN_TAG "[Taunt-tastic]"
-#define PLUGIN_VERSION "1.0.0"
+#define PLUGIN_VERSION "1.0.3"
 
 public Plugin myinfo =
 {
@@ -429,28 +430,74 @@ void MenuHandler_OnTauntSelected(Menu hMenu, MenuAction eAction, int iClient, in
 
 void ForceTaunt(int iClient, int iTauntTauntIndex)
 {
-    int iActiveWeapon = GetEntPropEnt(iClient, Prop_Send, "m_hActiveWeapon");
     char szClassname[40];
-    GetEdictClassname(iActiveWeapon, szClassname, sizeof(szClassname));
-    
-    // Thermal Thruster is the only weapon which needs a different classname to work
-    if (GetEntProp(iActiveWeapon, Prop_Send, "m_iItemDefinitionIndex") == THERMAL_THRUSTER)
-        strcopy(szClassname, sizeof(szClassname), "tf_weapon_shotgun_pyro");
+    int iWeapon, iActiveWeapon = GetEntPropEnt(iClient, Prop_Send, "m_hActiveWeapon");
+
+    if (iActiveWeapon == -1)
+    {
+        szClassname = "tf_weapon_bat";
+        iWeapon = CreateEntityByName(szClassname);
+        SetEntPropString(iWeapon, Prop_Data, "m_iName", DUMMY_TARGETNAME);
+    }
     else
+    {
         GetEdictClassname(iActiveWeapon, szClassname, sizeof(szClassname));
 
-    int iWeapon = CreateEntityByName(szClassname);
+        // Thermal Thruster is the only weapon which needs a different classname to work
+        if (GetEntProp(iActiveWeapon, Prop_Send, "m_iItemDefinitionIndex") == THERMAL_THRUSTER)
+            strcopy(szClassname, sizeof(szClassname), "tf_weapon_shotgun_pyro");
+        else
+            GetEdictClassname(iActiveWeapon, szClassname, sizeof(szClassname));
+
+        iWeapon = CreateEntityByName(szClassname);
+    }
+    
     VScript_StopTaunt(iClient);
     TF2_RemoveCondition(iClient, TFCond_Taunting);
     DispatchSpawn(iWeapon);
+    
+    SetEntProp(iWeapon, Prop_Send, "m_bValidatedAttachedEntity", 1);
     SetEntProp(iWeapon, Prop_Send, "m_iItemDefinitionIndex", iTauntTauntIndex);
     SetEntProp(iWeapon, Prop_Send, "m_bInitialized", true);
     SetEntProp(iWeapon, Prop_Data, "m_bForcePurgeFixedupStrings", true);
     SetEntPropEnt(iClient, Prop_Send, "m_hActiveWeapon", iWeapon);
     SetEntProp(iClient, Prop_Send, "m_iFOV", 0);
-    VScript_ForceDefaultTaunt(iClient);
-    SetEntPropEnt(iClient, Prop_Send, "m_hActiveWeapon", iActiveWeapon);
-    AcceptEntityInput(iWeapon, "Kill");
+
+    // If players are ref posing, wait until TF2_OnConditionRemoved to delete the weapon
+    if (iActiveWeapon == -1)
+    {
+        EquipPlayerWeapon(iClient, iWeapon);
+        SetEntPropEnt(iClient, Prop_Send, "m_hActiveWeapon", iWeapon);
+        VScript_ForceDefaultTaunt(iClient);
+    }
+    else // ... otherwise delete the dummy weapon immediately
+    {
+        SetEntProp(iActiveWeapon, Prop_Send, "m_bValidatedAttachedEntity", 1);
+        VScript_ForceDefaultTaunt(iClient);
+        SetEntPropEnt(iClient, Prop_Send, "m_hActiveWeapon", iActiveWeapon);
+        AcceptEntityInput(iWeapon, "Kill");
+    }
+}
+
+public void TF2_OnConditionRemoved(int iClient, TFCond eCond)
+{
+    // Delete the dummy weapon when they're done taunting, set them to the ref pose
+    if (eCond != TFCond_Taunting)
+        return;
+    
+    int iActiveWeapon = GetEntPropEnt(iClient, Prop_Send, "m_hActiveWeapon");
+
+    // Weapon was deleted by class switch or by other natural means
+    if (iActiveWeapon == -1)
+        return;
+    
+    char szName[32];
+    GetEntPropString(iActiveWeapon, Prop_Data, "m_iName", szName, sizeof(szName));
+    if (StrEqual(szName, DUMMY_TARGETNAME))
+    {
+        SetEntPropEnt(iClient, Prop_Send, "m_hActiveWeapon", -1);
+        AcceptEntityInput(iActiveWeapon, "Kill");
+    }
 }
 
 void VScript_StopTaunt(int iClient)
