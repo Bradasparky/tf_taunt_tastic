@@ -1,0 +1,92 @@
+name: Compile Plugin
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+    branches:
+      - main
+
+env: 
+  PLUGIN_NAME: tf_taunt_tastic
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        sm-version: 
+          - '1.12.x'
+
+    outputs:
+      plugin-version: ${{ steps.setup_sp.outputs.plugin-version }}
+      
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v7
+
+      - name: Setup SourcePawn
+        uses: rumblefrog/setup-sp@master
+        id: setup_sp
+        with:
+          version: ${{ matrix.sm-version }}
+          version-file: ./scripting/${{ env.PLUGIN_NAME }}.sp
+          define-name: PLUGIN_VERSION
+      
+      - name: Download dependencies
+        run: |
+          git clone --depth 1 https://github.com/nosoop/stocksoup.git
+          cp stocksoup/textparse.inc scripting/include/stocksoup/
+      
+      - name: Compile plugin
+        run: |
+          mkdir -p ${{ env.PLUGIN_NAME }}/plugins/
+          spcomp -i scripting/include scripting/${{ env.PLUGIN_NAME }}.sp -o ${{ env.PLUGIN_NAME }}/plugins/${{ env.PLUGIN_NAME }}.smx
+          
+      - name: Zip files
+        run: |
+          mkdir -p ${{ env.PLUGIN_NAME }}/scripting/
+          mkdir -p ${{ env.PLUGIN_NAME }}/translations/
+          cp scripting/${{ env.PLUGIN_NAME }}.sp ${{ env.PLUGIN_NAME }}/scripting/
+          cp translations/${{ env.PLUGIN_NAME }}.phrases.txt ${{ env.PLUGIN_NAME }}/translations/
+          zip -r ${{ github.event.repository.name }}_v${{ steps.setup_sp.outputs.plugin-version }}.zip ${{ env.PLUGIN_NAME }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ github.event.repository.name }}
+          path: ${{ github.event.repository.name }}_v${{ steps.setup_sp.outputs.plugin-version }}.zip
+
+  release:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: ${{ github.event.repository.name }}
+          path: .
+
+      - name: Create release
+        id: create_release
+        uses: ncipollo/release-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag: v${{ needs.build.outputs.plugin-version }}
+          artifacts: ${{ github.event.repository.name }}_v${{ needs.build.outputs.plugin-version }}.zip
+          draft: true
+          allowUpdates: true
+          updateOnlyUnreleased: true
+          skipIfReleaseExists: true
+          

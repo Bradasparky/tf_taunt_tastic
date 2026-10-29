@@ -1,0 +1,124 @@
+"Phrases"
+{
+	"Use"
+	{
+		"en"			"Use"
+	}
+	
+	"None"
+	{
+		"en"			"None"
+	}
+	
+	"You can also type"
+	{
+		"en"			"You can also type"
+	}
+	
+	"You must be alive to taunt"
+	{
+		"en"	"You must be alive to taunt."
+	}
+	
+	"Redraw taunt menu"
+	{
+		"en"			"Redrawing taunt menu for your current class."
+	}
+	
+	"Updated the taunt menu description"
+	{
+		"en"			"Updated the taunt menu description."
+	}
+	
+	"Force taunt"
+	{
+		"#format"		"{1:s},{2:t}"
+		"en"			"Forced the taunt {1} on {2}."
+	}
+	
+	"Taunt while taunting enabled"
+	{
+		"#format"		"{1:.1f}"
+		"en"			"You may taunt while already taunting ({1}s Cooldown)"
+	}
+	
+	"Taunt while taunting disabled"
+	{
+		"en"			"You may not taunt while already taunting."
+	}
+	
+	"Taunt list"
+	{
+		"#format"		"{1:s}"
+		"en"			"{1} taunts"
+	}
+	
+	"No class taunts were found"
+	{
+		"#format"		"{1:s}"
+		"en"			"No {1} taunts were found."
+	}
+	
+	"Class taunt not found by index"
+	{
+		"#format"		"{1:s},{2:s}"
+		"en"			"No {1} taunt was by the index '{2}'."
+	}
+	
+	"Class taunt not found by name"
+	{
+		"#format"		"{1:s},{2:s}"
+		"en"			"No {1} taunt was by the name '{2}'."
+	}
+	
+	"Taunt not found by index"
+	{
+		"#format"		"{1:s}"
+		"en"			"No taunt was found by the index '{1}'."
+	}
+	
+	"Taunt not found by name"
+	{
+		"#format"		"{1:s}"
+		"en"			"No taunt was found by the name '{1}'."
+	}
+	
+	"No taunts were found"
+	{
+		"#format"		"{1:s}"
+		"en"			"No {1} taunts were found."
+	}
+	
+	"Unusual taunts are disabled"
+	{
+		"en"			"Unusual taunts are disabled."
+	}
+	
+	"Set unusual"
+	{
+		"#format"		"{1:s}"
+		"en"			"Set {1} as your taunt unusual."
+	}
+	
+	"Unusual list"
+	{
+		"en"			"Taunt unusual effects"
+	}
+	
+	"No taunt unusuals were found"
+	{
+		"en"			"No taunt unusuals were found."
+	}
+	
+	"Unusual not found by index"
+	{
+		"#format"		"{1:s}"
+		"en"			"No taunt unusual was by the index '{1}'."
+	}
+	
+	"Unusual not found by name"
+	{
+		"#format"		"{1:s}"
+		"en"			"No taunt unusual was by the name '{1}'."
+	}
+}
